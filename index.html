@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Léo Poulain - Director</title>
+   
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://player.vimeo.com/api/player.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+   
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #000; color: #fff; }
+    .display-font { font-family: 'Archivo', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .btn-ui {
+      background: white; 
+      color: black; 
+      font-weight: 900; 
+      text-transform: uppercase;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px; 
+      letter-spacing: 0.05em; 
+      width: 100px; 
+      height: 36px;
+      transition: background 0.3s ease; 
+      cursor: pointer;
+      border: none; 
+      outline: none;
+    }
+    .btn-ui:hover { background: #d4d4d4; }
+    
+    .no-transition { transition: none !important; }
+
+    @media (max-width: 768px) {
+        .btn-ui-mobile {
+            width: 75px !important; 
+            height: 28px !important; 
+            font-size: 9px !important;
+        }
+    }
+
+    #timeline-wrapper { position: relative; width: 100%; height: 20px; cursor: pointer; display: flex; align-items: center; }
+    #timeline-track { width: 100%; height: 4px; background: rgba(255,255,255,0.2); position: relative; }
+    #timeline-fill { height: 100%; background: #fff; width: 0%; pointer-events: none; transition: width 0.1s linear; }
+
+    .fade-long { transition: opacity 0.7s ease-in-out; }
+    .transition-content { transition: opacity 0.7s ease-in-out; }
+    .btn-transition-mobile { transition: opacity 0.2s ease-in-out; }
+
+    @media (min-width: 1024px) { .mobile-only { display: none; } .desktop-only { display: block; } }
+    @media (max-width: 1023px) { .mobile-only { display: block; } .desktop-only { display: none; } }
+  </style>
+</head>
+<body>
+
+
+  <div id="loader" class="fixed inset-0 z-[120] bg-black flex flex-col items-center justify-center fade-long">
+    <div class="mb-2 w-32 transform transition-all duration-1000">
+        <img src="https://leopoulain.fr/assets/CARTESD.png" class="w-full opacity-100">
+    </div>
+    <h2 class="display-font text-sm font-black uppercase tracking-[0.2em] text-white"><span id="loader-counter">0</span> GO</h2>
+  </div>
+
+  <div id="global-btn-wrapper" class="fixed top-6 right-6 md:top-12 md:right-12 z-[110] cursor-pointer" onclick="toggleContact()">
+     <div id="btn-desktop-content" class="hidden md:flex items-center justify-center btn-ui">CONTACT</div>
+     <div id="btn-mobile-content" class="md:hidden flex flex-col gap-[6px] items-end justify-center p-2">
+        <div class="w-6 h-[2px] bg-white"></div>
+        <div class="w-6 h-[2px] bg-white"></div>
+     </div>
+  </div>
+
+  <div class="desktop-only fixed bottom-12 right-12 z-[95] pointer-events-none text-right">
+    <h3 class="display-font font-bold text-xs tracking-[0.3em] uppercase mb-2 text-neutral-300">Film Director</h3>
+    <h1 class="display-font uppercase leading-none tracking-tight text-6xl font-black">Léo Poulain</h1>
+  </div>
+  <div class="mobile-only fixed bottom-0 left-0 w-full p-6 z-[95] bg-gradient-to-t from-black to-transparent pointer-events-none text-center">
+    <h3 class="display-font font-bold text-xs tracking-[0.3em] uppercase mb-1 text-neutral-300">Film Director</h3>
+    <h1 class="display-font font-black uppercase tracking-tight text-4xl">Léo Poulain</h1>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 w-full h-screen relative z-10 fade-long delay-500" id="home-view">
+    <div class="relative w-full h-full border-r border-white/5 bg-black overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-20 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none"></div>
+        <div class="absolute left-0 top-0 bottom-0 w-12 z-30 flex flex-col items-center justify-center pointer-events-none mix-blend-difference">
+            <div id="indicator-track" class="space-y-4 flex flex-col items-end w-full pr-4 transition-all duration-300"></div>
+        </div>
+        <div id="scroll-container" class="h-full overflow-y-auto no-scrollbar snap-y snap-mandatory bg-black px-0"></div>
+    </div>
+    <div class="relative hidden lg:block bg-black pointer-events-none h-full"></div>
+  </div>
+
+  <div id="contact-modal" class="fixed inset-0 z-[90] hidden fade-long opacity-0 flex items-center justify-center p-6 bg-black/40 backdrop-blur-md">
+    <div class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center h-full lg:h-auto content-center">
+      <div class="lg:col-span-5 flex justify-center lg:justify-start order-2 lg:order-1">
+        <div class="relative w-40 md:w-full max-w-sm aspect-[3/4]">
+          <div class="absolute inset-0 border-[8px] md:border-[12px] border-white z-10 pointer-events-none"></div>
+          <img src="https://leopoulain.fr/assets/PDP.png" class="w-full h-full object-cover brightness-90">
+        </div>
+      </div>
+      <div class="lg:col-span-7 flex flex-col justify-center order-1 lg:order-2 text-center lg:text-left">
+        <div class="flex flex-row gap-8 lg:gap-16 justify-center items-center text-xs md:text-sm font-bold uppercase mb-8 lg:mb-12">
+          <a href="https://www.instagram.com/le.opoulain/" target="_blank" class="hover:text-neutral-400 border-b border-white md:border-transparent md:hover:border-white pb-1 transition-colors">Instagram</a>
+          <a href="mailto:leopoulain.contact@gmail.com" class="hover:text-neutral-400 border-b border-white md:border-transparent md:hover:border-white pb-1 transition-colors">Mail</a>
+        </div>
+        <p class="display-font font-medium uppercase text-sm md:text-xl lg:text-2xl leading-snug tracking-tight text-neutral-100 max-w-3xl ml-auto text-center lg:text-center">
+          Après avoir ressenti le mouvement à travers mon corps, je cherche à l'ancrer dans ma narration.<br><br class="hidden md:block">
+          C'est constamment à la recherche d'une image sincère, au plus proche de l'émotion, que je façonne mon regard de réalisateur.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="project-view" class="fixed inset-0 z-[100] hidden bg-black overflow-y-auto no-scrollbar fade-long opacity-0">
+    <div id="project-content-wrapper" class="w-full min-h-full transition-content opacity-100">
+        
+        <div class="relative w-full h-screen bg-black sticky top-0">
+        <div id="click-layer" class="absolute inset-0 z-20 cursor-pointer" onclick="togglePlay()"></div>
+        <div id="video-wrapper" class="absolute inset-0 z-0 pointer-events-none"></div>
+        <div class="absolute inset-0 z-30 flex flex-col justify-end pointer-events-none pb-24 md:pb-12"> 
+            <div class="w-full px-[2%] pointer-events-auto">
+                <h1 id="view-title" class="display-font text-2xl md:text-4xl font-black uppercase text-white tracking-tighter drop-shadow-md mb-1 text-left"></h1>
+                <div id="timeline-wrapper">
+                <div id="timeline-track"><div id="timeline-fill"></div></div>
+                </div>
+            </div>
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-60 pointer-events-none w-full text-center">
+                <span class="mobile-only text-[9px] font-bold uppercase tracking-[0.3em] text-white">Swipe for credits</span>
+                <span class="desktop-only text-[9px] font-bold uppercase tracking-[0.3em] text-white">Scroll for credits</span>
+            </div>
+        </div>
+        </div>
+        <div class="relative z-20 bg-black w-full min-h-screen mt-[20vh]">
+        <div class="absolute -top-32 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-30 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto py-24 px-6 md:px-20 border-t border-white/10 relative bg-black">
+            
+            <div class="flex flex-col md:flex-row items-center md:items-end justify-between gap-2 md:gap-6 mb-12 border-b border-white pb-6 text-center md:text-left">
+                <div class="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-4 justify-center md:justify-start w-full md:w-auto">
+                    <div id="cred-title-container" class="flex flex-wrap items-baseline justify-center md:justify-start gap-3">
+                        </div>
+                </div>
+                <div id="awards-header" class="flex flex-wrap gap-4 pb-1 justify-center md:justify-end"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-32 items-start">
+            <div id="credits-list-container" class="space-y-4"></div>
+            <div class="flex flex-col gap-4">
+                <div id="cred-img-wrapper" class="w-[80%] mx-auto aspect-[4/5] bg-neutral-900 overflow-hidden pointer-events-none">
+                    <img id="cred-secondary-img" src="" class="w-full h-full object-cover grayscale opacity-80">
+                </div>
+            </div>
+            </div>
+            <div class="mt-12 pt-12 border-t border-white/5 text-center">
+                <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-[0.4em] mb-4">Next Project</p>
+                <h3 id="next-project-btn" class="display-font text-2xl md:text-4xl font-black uppercase text-white cursor-pointer transition-transform duration-300 hover:scale-105 select-none">NOM DU PROJET</h3>
+            </div>
+        </div>
+        </div>
+
+    </div>
+  </div>
+
+  <script>
+    const PROJECTS = [
+        { 
+          key: "TOCCATA MOYINDO", 
+          artist: "MARIANA BENENGE", 
+          category: "SHORT FILM", 
+          videoId: "1205751311", 
+          platform: "vimeo", 
+          img: "https://leopoulain.fr/assets/imgprojet/TOCCATAMOYINDO.png",
+          creditImg: "https://leopoulain.fr/assets/backstages/TOCCATABACK.jpg",
+          credits: [
+            { role: "DIRECTOR", name: "Léo Poulain" },
+            { role: "Creative Director & Choreographer", name: "Mariana BENENGE"},
+            { role: "DOP & Steadycamer", name: "Etienne MULLER" },
+            { role: "1ST ASSISTANT CAMERA", name: "Leana SAVIO" },
+            { role: "Colorist", name: "Ahmida HERKATI" },
+            { role: "Graphic Designer", name: "Pierre BLANC" },
+            { role: "Sound Design & Mix", name: "Enzo MOREL" },
+            { role: "Styling", name: "Melissa BON" },
+            { role: "Styling assistant", name: "MAYCROCOSM" },
+            { role: "Hair", name: "Samtou HAIR STORY" },
+            { role: "MAKEUP artist", name: "Lola CADET" },
+            { role: "Production", name: "Stencia <br> Julius " },
+            { role: "Set Photographer", name: "Ojoz" },
+            { role: "Content creator", name: "Audrey" },
+            { role: "Dancers", name: "Honey Bee <br> Mathis IDRIS <br> Stella <br> Fanny <br> Tess <br> Astou <br> Avani <br> Laetitia <br>                 Samtou <br> Exo <br> Charlotte <br> Elaura <br> Maelys" },
+            { role: "catering", name: "Mercibeny" },
+            { role: "Music by", name: "Jean-Sebastien BACH" },
+            { role: "Thanks to", name: "Eureka 34" },
+
+          ],
+          awards: [] 
+        },
+                      {
+                        key: "N.I.N.J.A.",
+                        artist: "HANABI THE K",
+                        category: "Music Video",
+                        videoId: "1211759234",
+                        platform: "vimeo",
+                        img: "https://leopoulain.fr/assets/imgprojet/HANABI.png",
+                        creditImg: "https://leopoulain.fr/assets/backstages/NINJABACK.jpg",
+                        credits: [
+                          { role: "DIRECTOR", name: "Léo Poulain" },
+                          { role: "PRODUCTION", name: "Navillus Production" },
+                          { role: "Production Director", name: "Sara-Ann SULLIVAN"},
+                            { role: "1st Assistant Director", name: "Anaëlle CUDON"},
+                          { role: "DIRECTOR OF PHOTOGRAPHY", name: "Jean-Eudes AUBOIN" },
+                          { role: "1ST ASSISTANT CAMERA", name: "Loris PERRET" },
+                          { role: "Gaffer", name: "Xavier ALLAIRE" },
+                        { role: "Key Grip", name: "François LEMBREZ" },
+                        { role: "Set Designer", name: "Sarah LÉDÉE" },
+                        { role: "Styling Art Direction", name: "Guy" },
+                        { role: "Stylist", name: "Junior" },
+                          { role: "MAKEUP artist", name: "Yazid" },
+                        { role: "Hair", name: "Megan <br> David Mallet <br> DNP Agency" },
+                        { role: "Dancers", name: "Owen <br> Zofa <br> Luna <br> Wednesday <br> Isis <br> Camelia <br> Axouu" },
+                          { role: "Set Photographer", name: "Kira" },
+                          { role: "Editor & Colorist", name: "Anthony Hang Hu" },
+                        { role: "Graphic Designer", name: "Pierre Blanc" },
+                          { role: "Thanks to", name: "Jamaya Location" },
+                        ],
+                        awards: []
+                      },
+        /*{
+          key: "DINGOGO",
+          artist: "RAVAGE CLUB", 
+          category: "Music Video", 
+          videoId: "1210512750", 
+          platform: "vimeo", 
+          img: "https://leopoulain.fr/assets/imgprojet/DINGOGO.png",
+          creditImg: "https://leopoulain.fr/assets/backstages/DINGOBACK.jpg", 
+          credits: [
+            { role: "DIRECTOR", name: "Léo Poulain" },
+            { role: "PRODUCTION", name: "AT(h)OME <br> CHIEN FOU <br> Navillus Production" },
+            { role: "Production Director", name: "Sara-Ann SULLIVAN" },
+            { role: "DIRECTOR OF PHOTOGRAPHY", name: "Jean-Eudes AUBOIN" },
+            { role: "1ST ASSISTANT CAMERA", name: "Loris PERRET" },
+            { role: "Gaffer", name: "Xavier ALLAIRE" },
+            { role: "MAKEUP artist", name: "Inès EDDOHA" },
+            { role: "Set Photographer", name: "Claire DAIRAINE" },
+            { role: "Colorist", name: "Ahmida HERKATI" },
+            { role: "Thanks to", name: "Jamaya Location" },
+          ],
+          awards: [] 
+        },*/
+        {
+          key: "GÉNÉRATION IMPOLIE", 
+          artist: "FRANGLISH FT. KEBLACK", 
+          category: "Music Video", 
+          videoId: "1129233128", 
+          platform: "vimeo", 
+          img: "https://leopoulain.fr/assets/imgprojet/GENERATION-IMPOLIE.png",
+          creditImg: "https://leopoulain.fr/assets/backstages/GENBACK.jpg", 
+          credits: [
+            { role: "DIRECtoR", name: "Léo Poulain" },
+            { role: "PRODUCTION", name: "Kairos Production" },
+            { role: "PRODUCERS", name: "Marjane Slami & Flora Koffi-Lopez" },
+            { role: "Production Director", name: "Valentin Piquemal" },
+            { role: "Production Assistants", name: "Sam Bougon &<br> Aïna Thomas" },
+            { role: "1st ASSISTANT DIRECTOR", name: "Melvin Stankiewicz" },
+            { role: "DIRECTOR OF PHOTOGRAPHY", name: "Jules Schneider" },
+            { role: "1ST ASSISTANT CAMERA", name: "Jade Chaimovitch" },
+            { role: "2ND ASSISTANT CAMERA", name: "Joris Hottois" },
+            { role: "Production Manager", name: "Valentine De Cornis" },
+            { role: "Gaffer", name: "Vadim Sayde" },
+            { role: "MAKEUP artist", name: "Anne Cazé" },
+            { role: "Costume Design", name: "Ladurée Monsieur <br> Victoria Sylvester" },
+            { role: "editor & colorist", name: "Sacha Volkov" }
+          ],
+          awards: [] 
+        },
+        { 
+          key: "MOVE YOUR MIND", 
+          artist: "ASICS", 
+          category: "Commercial", 
+          videoId: "1083825205", 
+          platform: "vimeo", 
+          img: "https://leopoulain.fr/assets/imgprojet/MOVE-YOUR-MIND.png",
+          creditImg: "https://leopoulain.fr/assets/backstages/ASBACK.jpg", 
+          credits: [
+            { role: "Director", name: "Léo POULAIN" },
+            { role: "Dancer", name: "Hugo LAFON" },
+            { role: "DIRECTOR OF PHOTOGRAPHY", name: "Robin BRISSET" },
+            { role: "COLORIST & Sound DEsigner", name: "Anthony HANG HU" },
+            { role: "MUSIC", name: "Lilchick" }
+          ],
+          awards: [] 
+        },
+        { 
+          key: "ICEBERG", 
+          artist: "", 
+          category: "Short Film", 
+          videoId: "1117504917", 
+          platform: "vimeo", 
+          img: "https://leopoulain.fr/assets/imgprojet/ICEBERG.png",
+          creditImg: "https://leopoulain.fr/assets/backstages/ICEBACK.jpg", 
+          credits: [
+            { role: "WRITTEN AND CHOREOGRAPHED BY", name: "Léo POULAIN & Calista RAZAFINDRAMANITRA" },
+            { role: "DIRECTOR", name: "Léo POULAIN" },
+            { role: "ACTRESS & ARTISTIC DIRECTOR", name: "Calista RAZAFINDRAMANITRA" },
+            { role: "1st ASSISTANT DIRECTOR", name: "Félix DOQUET" },
+            { role: "DIRECTOR OF PHOTOGRAPHY", name: "Jean-Eudes AUBOIN" },
+            { role: "1ST ASSISTANT CAMERA", name: "Oscar MIGNOTTE" },
+            { role: "2ND ASSISTANT CAMERA", name: "Jade ÖHLUND" },
+            { role: "Boom Operator", name: "Pablo HORCKMANS" },
+            { role: "Hairstylist", name: "Toja MENDELZOON" },
+            { role: "MAKEUP ARTIST", name: "Cylia NSANG" },
+            { role: "Production Assistant", name: "Gaspard CHAMPION CHARNAY" },
+            { role: "Set Photographer", name: "Claire CATTEAU" },
+            { role: "Behind-the-Scenes Videographer", name: "Jérémy DROUILLARD & Brendan KNOWLSON" },
+            { role: "Original Music", name: "Yann CAUSEUR" },
+            { role: "Sound Design, Mixing & Mastering", name: "Robinson MUNOZ" },
+            { role: "Colorist", name: "Ahmida HERKATI" },
+            { role: "Editors", name: "Léo POULAIN & Calista RAZAFINDRAMANITRA" },
+            { role: "Technical Resources", name: "Atomic Location <br> Prise 2 Son" },
+            { role: "Thanks to", name: "Cinémagis Bordeaux <br> CF Adage <br> Le Performance <br> Sylvain Le Poivre" }
+          ],
+          awards: ["https://leopoulain.fr/assets/prix/EXP.png", 
+                   "https://leopoulain.fr/assets/prix/GIFF.png", 
+                   "https://leopoulain.fr/assets/prix/INSHADOW.png", 
+                   "https://leopoulain.fr/assets/prix/DESCORPS.png"] 
+        },   
+    ];
+
+    function initProjects() {
+        const container = document.getElementById('scroll-container');
+        if(!container) return;
+        container.innerHTML = ''; 
+        PROJECTS.forEach((p, index) => {
+            const itemHTML = `
+            <div class="relative w-full h-[40vh] lg:h-[50vh] my-8 snap-center group overflow-hidden cursor-pointer flex items-center justify-center project-item" 
+                 data-index="${index}" 
+                 data-key="${p.key}" 
+                 onclick="openProject(this)">
+                <img src="${p.img}" class="brightness-[0.5] group-hover:brightness-75 group-hover:scale-105 transition-all duration-1000 w-full h-full object-cover absolute">
+                <div class="relative z-10 text-center translate-y-4 group-hover:translate-y-0 transition-transform duration-500 px-4">
+                    <p class="display-font font-bold text-xs tracking-[0.3em] uppercase mb-1 text-neutral-300">${p.category}</p>
+                    <h2 class="project-title display-font text-2xl md:text-4xl uppercase font-black tracking-tight leading-none">${p.key}</h2>
+                </div>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', itemHTML);
+        });
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* LOADER — enregistré EN PREMIER, avec filet de sécurité                     */
+    /* Quoi qu'il arrive ailleurs dans le script, le loader ne peut plus rester   */
+    /* bloqué à l'écran indéfiniment.                                             */
+    /* -------------------------------------------------------------------------- */
+    (function initLoader() {
+      function hideLoader() {
+        const loaderEl = document.getElementById('loader');
+        if (!loaderEl || loaderEl.dataset.hidden === '1') return;
+        loaderEl.dataset.hidden = '1';
+        loaderEl.classList.add('opacity-0');
+        setTimeout(() => { if (loaderEl) loaderEl.style.display = 'none'; }, 700);
+      }
+
+      function startCounter() {
+        const counterEl = document.getElementById('loader-counter');
+        if (!counterEl) { hideLoader(); return; }
+
+        let count = 0;
+        function updateCounter() {
+          try {
+            let increment = Math.floor(Math.random() * 2) + 1;
+            let speed = 25;
+            if (count > 85) speed = 150;
+            if (count > 95) speed = 300;
+
+            count += increment;
+
+            if (count >= 100) {
+              count = 100;
+              counterEl.innerText = count;
+              setTimeout(hideLoader, 500);
+            } else {
+              counterEl.innerText = count;
+              setTimeout(updateCounter, speed);
+            }
+          } catch (e) {
+            console.error('Loader counter error, masquage forcé :', e);
+            hideLoader();
+          }
+        }
+        requestAnimationFrame(() => updateCounter());
+      }
+
+      document.addEventListener('DOMContentLoaded', startCounter);
+      // Filet de sécurité absolu, indépendant de tout le reste : 6s max.
+      setTimeout(hideLoader, 6000);
+    })();
+
+    try {
+      initProjects();
+    } catch (e) {
+      console.error('initProjects() a échoué :', e);
+    }
+
+    let playerInstance = null;
+    let timer = null;
+    let currentPlatform = null;
+
+    /* -------------------------------------------------------------------------- */
+    /* LOGIQUE                                       */
+    /* -------------------------------------------------------------------------- */
+    function updateGlobalButton(mode) {
+        const wrapper = document.getElementById('global-btn-wrapper');
+        const isMobile = window.innerWidth < 768;
+
+        let content = '';
+        let action = null;
+
+        if (mode === 'project-open') {
+            action = closeProject;
+            content = isMobile 
+                ? '<div class="btn-ui btn-ui-mobile flex items-center justify-center">CLOSE</div>'
+                : '<div class="hidden md:flex items-center justify-center btn-ui">CLOSE</div>';
+        } else {
+            action = toggleContact;
+            content = `
+                <div id="btn-desktop-content" class="hidden md:flex items-center justify-center btn-ui">CONTACT</div>
+                <div id="btn-mobile-content" class="md:hidden flex flex-col gap-[6px] items-end justify-center p-2">
+                    <div class="w-6 h-[2px] bg-white"></div>
+                    <div class="w-6 h-[2px] bg-white"></div>
+                </div>
+            `;
+        }
+
+        if (isMobile) {
+            wrapper.classList.add('btn-transition-mobile', 'opacity-0');
+            setTimeout(() => {
+                wrapper.onclick = action;
+                wrapper.innerHTML = content;
+                wrapper.classList.remove('opacity-0');
+            }, 200);
+        } else {
+            const btns = wrapper.querySelectorAll('.btn-ui');
+            btns.forEach(b => b.classList.add('no-transition'));
+            wrapper.onclick = action;
+            wrapper.innerHTML = content;
+            setTimeout(() => {
+                const newBtns = wrapper.querySelectorAll('.btn-ui');
+                newBtns.forEach(b => b.classList.remove('no-transition'));
+            }, 50);
+        }
+    }
+
+    function openProject(el, force = false, fromNext = false) {
+      if(!force && window.innerWidth < 1024) {
+          const rect = el.getBoundingClientRect();
+          const screenCenter = window.innerHeight / 2;
+          const elCenter = rect.top + (rect.height / 2);
+          const tolerance = window.innerHeight * 0.15; 
+          if(Math.abs(screenCenter - elCenter) > tolerance) return;
+      }
+
+      const key = el.getAttribute('data-key');
+      const index = parseInt(el.getAttribute('data-index'));
+      const data = PROJECTS[index];
+      
+      if(!data) return;
+
+      const view = document.getElementById('project-view');
+      const contentWrapper = document.getElementById('project-content-wrapper'); // TARGET POUR LE FADE INTERNE
+
+      // FONCTION DE MISE A JOUR DES DONNEES (Shared Logic)
+      const performUpdate = () => {
+          // UPDATE BUTTON
+          updateGlobalButton('project-open');
+          currentPlatform = data.platform;
+
+          // CLEAN OLD
+          if(timer) clearInterval(timer);
+          if(playerInstance) { try { playerInstance.destroy ? playerInstance.destroy() : playerInstance.unload(); } catch(e){} }
+          playerInstance = null;
+          document.getElementById('video-wrapper').innerHTML = '';
+            
+          // TITLES
+          const separator = `<span class="opacity-50 mx-2 text-xl md:text-3xl font-light">|</span>`;
+          const titleHTML = data.artist 
+              ? `${data.key} ${separator} ${data.artist}`
+              : data.key;
+          document.getElementById('view-title').innerHTML = titleHTML;
+
+          // CREDITS TITLE
+          const creditsTitleHTML = data.artist
+              ? `<h2 class="display-font text-4xl md:text-5xl font-black uppercase leading-none">${data.key}</h2>
+                 <span class="hidden md:inline mx-2 text-4xl text-neutral-600 font-light">|</span>
+                 <span class="block md:inline display-font text-xl md:text-2xl font-bold uppercase text-neutral-400 mt-2 md:mt-0">${data.artist}</span>`
+              : `<h2 class="display-font text-4xl md:text-5xl font-black uppercase leading-none">${data.key}</h2>`;
+          document.getElementById('cred-title-container').innerHTML = creditsTitleHTML;
+          
+          // --- LOGIQUE IMAGE CREDITS ---
+          const credImgWrapper = document.getElementById('cred-img-wrapper');
+          const credImgEl = document.getElementById('cred-secondary-img');
+          
+          if (data.creditImg && data.creditImg.trim() !== "") {
+              credImgEl.src = data.creditImg;
+              credImgWrapper.style.display = 'block';
+          } else {
+              credImgWrapper.style.display = 'none';
+          }
+            
+          // AWARDS
+          const awardsHtml = data.awards.length > 0 
+              ? data.awards.map(a => `<img src="${a}" class="h-10 md:h-16 w-auto object-contain brightness-0 invert">`).join('') 
+              : ''; 
+          document.getElementById('awards-header').innerHTML = awardsHtml;
+
+          // CREDITS LIST
+          document.getElementById('credits-list-container').innerHTML = data.credits.map(c => `
+            <div class="grid grid-cols-2 gap-4 pb-2">
+                <span class="text-[10px] md:text-xs font-black uppercase text-white tracking-wider">${c.role}</span>
+                <span class="text-[10px] md:text-xs font-normal uppercase text-neutral-400">${c.name}</span>
+            </div>
+          `).join('');
+
+          // NEXT BUTTON LOGIC
+          const nextIndex = (index + 1) % PROJECTS.length;
+          const nextData = PROJECTS[nextIndex];
+          const nextBtn = document.getElementById('next-project-btn');
+          nextBtn.innerText = nextData.key;
+          
+          const newBtn = nextBtn.cloneNode(true);
+          nextBtn.parentNode.replaceChild(newBtn, nextBtn);
+          newBtn.onclick = () => {
+             const nextProjectEl = document.querySelector(`.project-item[data-key="${nextData.key}"]`);
+             if (nextProjectEl) {
+                 // APPEL RECURSIF EN MODE "FROM NEXT"
+                 openProject(nextProjectEl, true, true);
+             }
+          };
+
+          // PLAYER INIT
+          const iframeId = 'player-' + Date.now();
+          let src = data.platform === 'vimeo' 
+            ? `https://player.vimeo.com/video/${data.videoId}?autoplay=1&controls=0&muted=0&loop=0&autopause=0` 
+            : `https://www.youtube.com/embed/${data.videoId}?enablejsapi=1&autoplay=1&controls=0&rel=0&modestbranding=1&iv_load_policy=3`;
+          document.getElementById('video-wrapper').innerHTML = `<iframe id="${iframeId}" class="w-full h-full object-cover" src="${src}" frameborder="0" allow="autoplay; fullscreen"></iframe>`;
+          initPlayer(iframeId, data.platform);
+      };
+
+      // --- LOGIQUE D'OUVERTURE ---
+      // performUpdate() est protégé : même si un détail échoue (ex: SDK vidéo
+      // manquant), la fiche projet s'ouvre quand même au lieu de ne rien faire.
+      if (fromNext) {
+          // 1. SI ON VIENT DU BOUTON SUIVANT : ON FADE JUSTE LE CONTENU (PAS LA VUE ENTIERE)
+          contentWrapper.classList.remove('opacity-100');
+          contentWrapper.classList.add('opacity-0');
+          
+          setTimeout(() => {
+              try { performUpdate(); } catch (e) { console.error('performUpdate() a échoué :', e); }
+              view.classList.remove('hidden');
+              view.scrollTop = 0;
+              // Fade In contenu
+              contentWrapper.classList.remove('opacity-0');
+              contentWrapper.classList.add('opacity-100');
+          }, 700);
+
+      } else {
+          // 2. SI ON VIENT DE L'ACCUEIL
+          try { performUpdate(); } catch (e) { console.error('performUpdate() a échoué :', e); }
+          view.classList.remove('hidden');
+          // S'assurer que le contenu est visible
+          contentWrapper.classList.remove('opacity-0');
+          contentWrapper.classList.add('opacity-100');
+          
+          setTimeout(() => {
+              view.classList.add('opacity-100');
+              view.scrollTop = 0; 
+          }, 50);
+      }
+    }
+
+    function initPlayer(iframeId, platform) {
+        const iframe = document.getElementById(iframeId);
+        const track = document.getElementById('timeline-wrapper');
+
+        if (track) {
+            track.onclick = (e) => {
+                e.stopPropagation();
+                if (!playerInstance) return; // pas de lecteur JS actif (fallback natif en cours) -> on ignore
+                try {
+                    const rect = track.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    if(platform === 'vimeo') {
+                    playerInstance.getDuration().then(d => playerInstance.setCurrentTime(d * percent));
+                    } else if(platform === 'youtube' && playerInstance.seekTo) {
+                    const d = playerInstance.getDuration();
+                    playerInstance.seekTo(d * percent, true);
+                    }
+                    updateTimeline(percent * 100);
+                } catch (err) {
+                    console.error('Erreur de seek :', err);
+                }
+            };
+        }
+
+        try {
+            if (platform === 'vimeo') {
+                if (typeof Vimeo === 'undefined') throw new Error('SDK Vimeo non chargé (player.vimeo.com/api/player.js indisponible)');
+                playerInstance = new Vimeo.Player(iframe);
+                playerInstance.on('timeupdate', d => updateTimeline(d.percent * 100));
+            } else {
+                if (typeof YT === 'undefined' || !YT.Player) throw new Error('API YouTube non chargée (youtube.com/iframe_api indisponible)');
+                playerInstance = new YT.Player(iframeId, {
+                    events: { 'onReady': e => {
+                        e.target.playVideo();
+                        timer = setInterval(() => {
+                            if(playerInstance.getCurrentTime) {
+                                const d = playerInstance.getDuration(), c = playerInstance.getCurrentTime();
+                                if(d > 0) updateTimeline((c/d)*100);
+                            }
+                        }, 250);
+                    }}
+                });
+            }
+        } catch (err) {
+            // Le SDK n'a pas chargé -> on ne bloque plus toute la page.
+            // La vidéo reste lisible via les contrôles natifs de l'iframe, juste sans scrubber custom.
+            console.error('Lecteur vidéo indisponible, fallback en iframe natif :', err.message);
+            playerInstance = null;
+            if (iframe) {
+                iframe.src = iframe.src.replace('controls=0', 'controls=1');
+            }
+        }
+    }
+
+    function togglePlay() {
+        if(!playerInstance) return;
+        if(currentPlatform === 'vimeo') {
+            playerInstance.getPaused().then(paused => paused ? playerInstance.play() : playerInstance.pause());
+        } else {
+             const state = playerInstance.getPlayerState();
+             state === 1 ? playerInstance.pauseVideo() : playerInstance.playVideo();
+        }
+    }
+
+    function updateTimeline(pct) { document.getElementById('timeline-fill').style.width = `${pct}%`; }
+
+    function closeProject() {
+      const view = document.getElementById('project-view');
+      if(timer) clearInterval(timer);
+      if(playerInstance) { try { playerInstance.destroy ? playerInstance.destroy() : playerInstance.unload(); } catch(e){} }
+      playerInstance = null;
+      view.classList.remove('opacity-100');
+      
+      updateGlobalButton('normal');
+
+      setTimeout(() => { 
+          view.classList.add('hidden'); 
+          document.getElementById('video-wrapper').innerHTML = ''; 
+      }, 700);
+    }
+
+    function toggleContact() {
+        const modal = document.getElementById('contact-modal');
+        const wrapper = document.getElementById('global-btn-wrapper');
+        const isHidden = modal.classList.contains('hidden');
+        const isMobile = window.innerWidth < 768;
+
+        const switchState = () => {
+             if (isHidden) { 
+                modal.classList.remove('hidden'); 
+                setTimeout(() => modal.classList.remove('opacity-0'), 10);
+                wrapper.innerHTML = '<div class="btn-ui btn-ui-mobile flex items-center justify-center">CLOSE</div>';
+                wrapper.onclick = toggleContact;
+            } else { 
+                modal.classList.add('opacity-0'); 
+                setTimeout(() => modal.classList.add('hidden'), 700);
+                wrapper.innerHTML = `
+                    <div id="btn-desktop-content" class="hidden md:flex items-center justify-center btn-ui">CONTACT</div>
+                    <div id="btn-mobile-content" class="md:hidden flex flex-col gap-[6px] items-end justify-center p-2">
+                        <div class="w-6 h-[2px] bg-white"></div>
+                        <div class="w-6 h-[2px] bg-white"></div>
+                    </div>
+                `;
+                wrapper.onclick = toggleContact;
+            }
+        }
+
+        if (isMobile) {
+            wrapper.classList.add('btn-transition-mobile', 'opacity-0');
+            setTimeout(() => {
+                switchState();
+                wrapper.classList.remove('opacity-0');
+            }, 200);
+        } else {
+            const btns = wrapper.querySelectorAll('.btn-ui');
+            btns.forEach(b => b.classList.add('no-transition'));
+            switchState();
+            setTimeout(() => {
+                const newBtns = wrapper.querySelectorAll('.btn-ui');
+                newBtns.forEach(b => b.classList.remove('no-transition'));
+            }, 50);
+        }
+    }
+
+    (function(){
+      const c = document.getElementById('scroll-container'), t = document.getElementById('indicator-track');
+      if(!c) return;
+      function setupCarousel() {
+          const items = Array.from(c.children);
+          const count = items.length;
+          if(count === 0) return; 
+          c.innerHTML = ''; t.innerHTML = '';
+          for(let i=0;i<count;i++) t.innerHTML += '<div class="bg-white w-[6px] h-[1px] opacity-30 transition-all rounded-full"></div>';
+          for(let i=0;i<5;i++) items.forEach(x => c.appendChild(x.cloneNode(true)));
+          const targetIndex = count * 2; 
+          const allItems = Array.from(c.children);
+          if(allItems[targetIndex]) { allItems[targetIndex].scrollIntoView({ block: 'center' }); }
+          let tick = false;
+          c.addEventListener('scroll', () => {
+             if(!tick) {
+               requestAnimationFrame(() => {
+                   const h = c.scrollHeight/5, st = c.scrollTop;
+                   if(st < h*0.5) c.scrollTop += h*2; else if(st > h*3.5) c.scrollTop -= h*2;
+                   const idx = Math.floor((c.scrollTop + c.clientHeight/2) / (h/count)) % count;
+                   Array.from(t.children).forEach((el,i) => {
+                       el.style.width = i===idx ? '24px' : '6px';
+                       el.style.height = i===idx ? '3px' : '1px';
+                       el.style.opacity = i===idx ? '1' : '0.3';
+                   }); tick = false;
+                }); tick = true;
+             }
+          });
+      }
+      if (document.readyState === 'complete') {
+          setTimeout(setupCarousel, 50);
+      } else {
+          window.addEventListener('load', () => setTimeout(setupCarousel, 50));
+      }
+    })();
+  </script>
+</body>
+</html>
